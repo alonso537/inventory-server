@@ -1,10 +1,17 @@
-import express from "express";
-import fileUpload from "express-fileupload";
-import dotenv from "dotenv";
+const express = require("express");
+const dotenv = require("dotenv");
+const fileUpload = require("express-fileupload");
+const conectarDb = require("./config/db");
+const cors = require("cors");
 
 dotenv.config();
 
 const app = express();
+
+conectarDb();
+
+app.use(express.json());
+app.use(cors());
 
 app.use(
   fileUpload({
@@ -12,6 +19,11 @@ app.use(
     tempFileDir: "/tmp/",
   }),
 );
+
+//rutas
+app.use("/api/vendedores", require("./route/vendedores"));
+app.use("/api/auth", require("./route/auth"));
+app.use("/api/tienda", require("./route/tiendaRouter"));
 
 const PORT = process.env.PORT || 3000;
 
