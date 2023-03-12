@@ -50,19 +50,32 @@ exports.createTienda = async (req, res) => {
       nuevaTienda,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };
 
 exports.getMyTienda = async (req, res) => {
   try {
-    const tienda = await Tiendas.findOne({ dueno: req.user });
+    const vendedor = await Vendedores.findById({ _id: req.user });
 
+    // console.log(vendedor);
+
+    const tienda = await Tiendas.findById({ _id: vendedor.tienda.toString() });
+
+    // console.log(tienda);
+
+    // const tienda = await Tiendas.findOne({ dueno: req.user });
     res.status(200).json({
       tienda,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };
 
@@ -74,7 +87,10 @@ exports.getAllTiendas = async (req, res) => {
       tiendas,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };
 
@@ -83,6 +99,8 @@ exports.updateFoto = async (req, res) => {
     const { id } = req.params;
 
     const { foto } = req.files;
+
+    // console.log(req.files);
 
     const tienda = await Tiendas.findById(id);
 
@@ -118,7 +136,10 @@ exports.updateFoto = async (req, res) => {
       tienda,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };
 
@@ -148,7 +169,10 @@ exports.updateTienda = async (req, res) => {
       tienda,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };
 
@@ -163,6 +187,19 @@ exports.deleteTienda = async (req, res) => {
         msg: "La tienda no existe",
       });
     }
+
+    //obtener vendedores de la tienda
+    const vendedores = await Vendedores.find({ tienda: id });
+
+    // console.log(vendedores);
+
+    //eliminar tienda de los vendedores
+    vendedores.forEach(async (vendedor) => {
+      await Vendedores.findByIdAndUpdate(
+        { _id: vendedor._id },
+        { $pull: { tienda: "" } },
+      );
+    });
 
     if (tienda.foto) {
       const nombreArr = tienda.foto.split("/");
@@ -186,6 +223,9 @@ exports.deleteTienda = async (req, res) => {
       msg: "Tienda eliminada correctamente",
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };

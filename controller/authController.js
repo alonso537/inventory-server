@@ -48,7 +48,10 @@ exports.login = async (req, res) => {
       vendedor,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };
 
@@ -110,7 +113,10 @@ exports.register = async (req, res) => {
       vendedor,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };
 
@@ -131,6 +137,9 @@ exports.getMe = async (req, res) => {
       vendedor,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "hubo un error",
+    });
   }
 };

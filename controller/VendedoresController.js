@@ -48,6 +48,11 @@ exports.createVendedor = async (req, res) => {
     //guardar el vendedor
     await nuevoVendedor.save();
 
+    //actualizar la tienda y agregar el vendedor
+    await Tiendas.findByIdAndUpdate(tiendaId, {
+      $push: { vendedores: nuevoVendedor._id },
+    });
+
     //mensaje de confirmacion
     res.status(201).json({
       msg: "Vendedor creado correctamente",
@@ -58,14 +63,11 @@ exports.createVendedor = async (req, res) => {
         email: nuevoVendedor.email,
       },
     });
-
-    if (vendedor) {
-      return res.status(400).json({
-        msg: "El vendedor ya existe",
-      });
-    }
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "Hubo un error",
+    });
   }
 };
 
@@ -128,6 +130,7 @@ exports.getAllVendedores = async (req, res) => {
 
     //consulta para obtener vendedores con filtros , paginacion y ordenamiento y populate filtrar por tienda
     const vendedores = await Vendedores.find(filtro)
+      // .sort($or)
 
       .skip(skip)
       .limit(limitePorPagina)
@@ -161,14 +164,18 @@ exports.getAllVendedores = async (req, res) => {
       vendedores,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "Hubo un error",
+    });
   }
 };
 
 exports.uploadImage = async (req, res) => {
   try {
     const { id } = req.params;
-
+    // console.log(req.files);
+    // console.log(req.body);
     const { foto } = req.files;
 
     // console.log(foto.tempFilePath);
@@ -211,7 +218,10 @@ exports.uploadImage = async (req, res) => {
       vendedor,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "Hubo un error",
+    });
   }
 };
 
@@ -229,7 +239,7 @@ exports.updateUser = async (req, res) => {
     }
 
     //obtener los datos del body
-    const { nombre, apellido, username, email, telefono } = req.body;
+    const { nombre, apellido, username, email, telefono, password } = req.body;
 
     //actualizar los datos
     vendedor.nombre = nombre || vendedor.nombre;
@@ -237,6 +247,7 @@ exports.updateUser = async (req, res) => {
     vendedor.username = username || vendedor.username;
     vendedor.email = email || vendedor.email;
     vendedor.telefono = telefono || vendedor.telefono;
+    vendedor.password = password || vendedor.password;
 
     //guardar los cambios
     await vendedor.save();
@@ -246,7 +257,10 @@ exports.updateUser = async (req, res) => {
       vendedor,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "Hubo un error",
+    });
   }
 };
 
@@ -256,6 +270,9 @@ exports.deleteVendedor = async (req, res) => {
 
     //obtener el vendedor
     const vendedor = await Vendedores.findById({ _id: id });
+
+    //obtener tienda en la que esta el vendedor
+    const tienda = await Tiendas.findById({ _id: vendedor.tienda.toString() });
 
     if (!vendedor) {
       return res.status(404).json({
@@ -280,6 +297,15 @@ exports.deleteVendedor = async (req, res) => {
         });
     }
 
+    //eliminar el vendedor de la tienda
+    const vendedoreIntienda = tienda.vendedores.filter(
+      (vendedor) => vendedor.toString() !== id,
+    );
+
+    tienda.vendedores = vendedoreIntienda;
+
+    await tienda.save();
+
     //eliminar el vendedor
     await vendedor.delete();
 
@@ -287,6 +313,9 @@ exports.deleteVendedor = async (req, res) => {
       msg: "Vendedor eliminado correctamente",
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    res.status(500).json({
+      msg: "Hubo un error",
+    });
   }
 };
