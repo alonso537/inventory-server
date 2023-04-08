@@ -69,7 +69,7 @@ exports.getMyTienda = async (req, res) => {
       });
     }
 
-    const tienda = await Tiendas.findById();
+    const tienda = await Tiendas.findById({ _id: vendedor.tienda });
 
     // console.log(tienda);
 
