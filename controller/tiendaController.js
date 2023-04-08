@@ -64,7 +64,7 @@ exports.getMyTienda = async (req, res) => {
     // console.log(vendedor);
 
     if (!vendedor?.tienda) {
-      return res.status(400).json({
+      return res.status(200).json({
         msg: "No tienes tienda",
       });
     }

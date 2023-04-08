@@ -90,8 +90,8 @@ exports.getAllVendedores = async (req, res) => {
     const dueno = await Vendedores.findById({ _id: req.user });
 
     if (!dueno.tienda) {
-      return res.status(400).json({
-        msg: "No tienes una tienda",
+      return res.status(200).json({
+        msg: "No tienes tienda",
       });
     }
 
