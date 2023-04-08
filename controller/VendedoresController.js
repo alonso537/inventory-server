@@ -79,9 +79,7 @@ exports.getAllVendedores = async (req, res) => {
       nombre,
       apellido,
       username,
-      email,
-      telefono,
-      comision,
+
       estado,
       pagina,
       limite,
@@ -90,6 +88,12 @@ exports.getAllVendedores = async (req, res) => {
 
     // console.log(req.user);
     const dueno = await Vendedores.findById({ _id: req.user });
+
+    if (!dueno.tienda) {
+      return res.status(400).json({
+        msg: "No tienes una tienda",
+      });
+    }
 
     //configurar paginacion
     const paginaActual = parseInt(pagina) || 1;
@@ -107,20 +111,15 @@ exports.getAllVendedores = async (req, res) => {
     if (username) {
       filtro.username = { $regex: username, $options: "i" };
     }
-    if (email) {
-      filtro.email = { $regex: email, $options: "i" };
-    }
-    if (telefono) {
-      filtro.telefono = { $regex: telefono, $options: "i" };
-    }
-    if (comision) {
-      filtro.comision = { $regex: comision, $options: "i" };
-    }
+
     if (estado) {
       filtro.estado = estado;
     }
 
+    // filtro.tienda = tiendaUsuario._id;
     filtro.tienda = dueno.tienda;
+
+    // console.log(dueno);
     // console.log(filtro);
     //configuracion de ordenamiento
     const ordenamiento = {};
@@ -164,7 +163,7 @@ exports.getAllVendedores = async (req, res) => {
       vendedores,
     });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(500).json({
       msg: "Hubo un error",
     });

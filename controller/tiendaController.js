@@ -63,7 +63,13 @@ exports.getMyTienda = async (req, res) => {
 
     // console.log(vendedor);
 
-    const tienda = await Tiendas.findById({ _id: vendedor.tienda.toString() });
+    if (!vendedor?.tienda) {
+      return res.status(400).json({
+        msg: "No tienes tienda",
+      });
+    }
+
+    const tienda = await Tiendas.findById();
 
     // console.log(tienda);
 
@@ -72,7 +78,7 @@ exports.getMyTienda = async (req, res) => {
       tienda,
     });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(500).json({
       msg: "hubo un error",
     });
@@ -87,7 +93,7 @@ exports.getAllTiendas = async (req, res) => {
       tiendas,
     });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(500).json({
       msg: "hubo un error",
     });

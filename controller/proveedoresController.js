@@ -41,8 +41,7 @@ exports.createProveedor = async (req, res) => {
 
 exports.getAllProveedores = async (req, res) => {
   try {
-    const { nombre, direccion, telefono, email, url, limite, pagina, orden } =
-      req.query;
+    const { nombre, limite, pagina, orden } = req.query;
 
     //configurar paginacion
     const limitePorPagina = parseInt(limite) || 10;
@@ -54,18 +53,8 @@ exports.getAllProveedores = async (req, res) => {
     if (nombre) {
       filtro.nombre = { $regex: nombre, $options: "i" };
     }
-    if (direccion) {
-      filtro.direccion = { $regex: direccion, $options: "i" };
-    }
-    if (telefono) {
-      filtro.telefono = { $regex: telefono, $options: "i" };
-    }
-    if (email) {
-      filtro.email = { $regex: email, $options: "i" };
-    }
-    if (url) {
-      filtro.url = { $regex: url, $options: "i" };
-    }
+
+    filtro.dueno = req.user;
 
     //configurar orden
     const ordenar = {};
@@ -73,7 +62,7 @@ exports.getAllProveedores = async (req, res) => {
       ordenamiento.nombre = orden;
     }
 
-    //consulta para obtener los proveedores con paginacion y filtros
+    //consulta para obtener los proveedores que el dueno sea el usuario autenticado y paginacion
     const proveedoresdb = await proveedores
       .find(filtro)
       .sort(ordenar)
@@ -105,7 +94,7 @@ exports.getAllProveedores = async (req, res) => {
       proveedores: proveedoresdb,
     });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(500).json({
       msg: "hubo un error",
     });
