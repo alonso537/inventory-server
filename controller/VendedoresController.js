@@ -6,17 +6,24 @@ const { subirImagen, eliminarImagen } = require("../utils/Cloudinary");
 
 exports.createVendedor = async (req, res) => {
   try {
-    const { nombre, apellido, username, email, telefono, password, tienda } =
-      req.body;
+    const { nombre, apellido, username, email, telefono, password } = req.body;
+
+    const { user } = req;
+
+    // console.log(user);
+
+    const userDb = await Vendedores.findById({ _id: user });
+
+    // console.log(userDb);
 
     //checar que vengan todos los campos menos telefono y foto
-    if (!nombre || !apellido || !username || !email || !password || !tienda) {
+    if (!nombre || !apellido || !username || !email || !password) {
       return res.status(400).json({
         msg: `Todos los campos son obligatorios, excepto telefono y foto`,
       });
     }
 
-    const tiendaId = await Tiendas.findById({ _id: tienda });
+    const tiendaId = await Tiendas.findById({ _id: userDb.tienda });
     //checar que el vendedore no exista en la tienda
     const vendedor = await Vendedores.findOne({
       $and: [{ username, nombre, apellido }, { tienda: tiendaId }],
@@ -64,7 +71,7 @@ exports.createVendedor = async (req, res) => {
       },
     });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(500).json({
       msg: "Hubo un error",
     });
