@@ -66,6 +66,8 @@ exports.getAllVentas = async (req, res) => {
   try {
     const user = await Vendedores.findById(req.user).select("-password");
 
+    console.log(user.tienda);
+
     //obtener las ventas y nadamas mostrar las de la tienda del usuario
     const ventas = await Venta.find({ tienda: user.tienda }).sort({
       fecha: -1,

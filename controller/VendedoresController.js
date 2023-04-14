@@ -12,13 +12,14 @@ exports.createVendedor = async (req, res) => {
     //checar que vengan todos los campos menos telefono y foto
     if (!nombre || !apellido || !username || !email || !password || !tienda) {
       return res.status(400).json({
-        msg: "Todos los campos son obligatorios",
+        msg: `Todos los campos son obligatorios, excepto telefono y foto`,
       });
     }
 
-    //checar que el vendedore no exista por el nombre y el apellido y username
+    const tiendaId = await Tiendas.findById({ _id: tienda });
+    //checar que el vendedore no exista en la tienda
     const vendedor = await Vendedores.findOne({
-      $or: [{ nombre }, { apellido }, { username }],
+      $and: [{ username, nombre, apellido }, { tienda: tiendaId }],
     });
 
     if (vendedor) {
@@ -28,7 +29,6 @@ exports.createVendedor = async (req, res) => {
     }
 
     //obtener el id de la tienda
-    const tiendaId = await Tiendas.findById({ _id: tienda });
 
     //hashear el password
     const salt = await bcryptjs.genSalt(10);
