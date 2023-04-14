@@ -27,7 +27,9 @@ exports.createProduct = async (req, res) => {
     }
 
     // Verificar que el producto no exista cons el titulo
-    const productoExist = await Producto.findOne({ titulo });
+    const productoExist = await Producto.findOne({
+      $and: [{ titulo }, { tienda }],
+    });
 
     if (productoExist) {
       return res.status(400).json({ msg: "El producto ya existe" });
