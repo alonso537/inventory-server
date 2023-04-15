@@ -343,7 +343,10 @@ exports.obtenerInvertido = async (req, res) => {
     //obtener el total invertido en productos usando el precioCompra
     let totalInvertido = 0;
     productos.forEach((producto) => {
-      totalInvertido += producto.precioCompra;
+      //
+      // console.log(producto);
+
+      totalInvertido += producto.precioCompra * producto.stock;
     });
 
     res.status(200).json({ totalInvertido });
