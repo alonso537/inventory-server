@@ -36,8 +36,16 @@ const VentaSchema = mongoose.Schema({
   },
   estado: {
     type: String,
-    enum: ["Pendiente", "Entregado", "Cancelado"],
+    enum: ["Pendiente", "Entregado", "Cancelado", "Abonado"],
     default: "Pendiente",
+  },
+  abonado: {
+    type: Number,
+    default: 0,
+  },
+  deuda: {
+    type: Number,
+    default: 0,
   },
 });
 

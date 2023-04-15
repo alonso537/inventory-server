@@ -9,7 +9,10 @@ const Vendedores = require("../models/vendedores");
 exports.crearVenta = async (req, res) => {
   try {
     //obtener los datos del body
-    const { cliente, productos, tienda } = req.body;
+    const { cliente, productos } = req.body;
+
+    //obtener el id del usuario
+    const user = await Vendedores.findById(req.user.id);
 
     //checar que no haya campos vacios
     if (!cliente || !productos) {
@@ -48,7 +51,7 @@ exports.crearVenta = async (req, res) => {
       total,
       cliente,
       productos,
-      tienda,
+      tienda: user.tienda,
     });
 
     //guardar venta
@@ -101,13 +104,36 @@ exports.changeEstado = async (req, res) => {
       return res.status(400).json({ msg: "No existe la venta" });
     }
 
+    //si el estado es diferente a Pendiente ya no se puede cambiar
+    if (
+      venta.estado === "Entregado" ||
+      venta.estado === "Cancelado" ||
+      venta.estado === "Abonado"
+    ) {
+      return res.status(400).json({ msg: "No se puede cambiar el estado" });
+    }
+
+    if (estado === "Abonado") {
+      //actualizar el campo de deuda con el total de la venta y el campo de total de la venta es igual al campo de abono
+      venta.deuda = venta.total;
+      venta.total = venta.abonado;
+
+      //guardar la venta
+      await venta.save();
+
+      //mensaje de exito
+      return res.status(200).json({ msg: "Venta actualizada correctamente" });
+    }
+
+    //cambiar el estado
     venta.estado = estado;
 
+    //guardar la venta
     await venta.save();
 
-    res.status(200).json({ msg: "Venta actualizada correctamente", venta });
+    //mensaje de exito
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(500).json("Hubo un error");
   }
 };
@@ -282,5 +308,58 @@ exports.createExcelMensual = async (req, res) => {
   } catch (error) {
     // console.log(error);
     res.status(500).json("Hubo un error");
+  }
+};
+
+exports.obtenerInvertido = async (req, res) => {
+  try {
+    const { user } = req;
+
+    const vendedor = await Vendedores.findById(user).select("-password");
+    // console.log(vendedor);
+
+    //obtener todos los productos de la tienda del usuario
+    const productos = await Producto.find({ tienda: vendedor.tienda });
+    console.log(productos.length);
+
+    //obtener el total invertido en productos usando el precioCompra
+    let totalInvertido = 0;
+    productos.forEach((producto) => {
+      totalInvertido += producto.precioCompra;
+    });
+
+    res.status(200).json({ totalInvertido });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json("Hubo un error");
+  }
+};
+
+exports.addAbono = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    //obtener la venta
+    const venta = await Venta.findById(id);
+
+    //obtener el abono
+    const { abono } = req.body;
+
+    //sumar el abono a la venta y restar el abono al total
+    venta.abonado += abono;
+    venta.deuda -= abono;
+    venta.total = venta.abonado;
+
+    //si la deuda es igual a 0 cambiar el estado a Entregado
+    if (venta.deuda === 0) {
+      venta.estado = "Entregado";
+    }
+
+    //guardar la venta
+    await venta.save();
+
+    res.status(200).json({ msg: "Abono agregado correctamente" });
+  } catch (error) {
+    console.log(error);
   }
 };

@@ -6,6 +6,8 @@ const {
   obtenerPorcentaje,
   getTotalVentasporMes,
   createExcelMensual,
+  obtenerInvertido,
+  addAbono,
 } = require("../controller/ventaController");
 const { isAutenticated } = require("../middlewares/auth");
 const { body, validationResult } = require("express-validator");
@@ -27,5 +29,7 @@ router.patch("/:id", isAutenticated, changeEstado);
 router.get("/porcentaje", isAutenticated, obtenerPorcentaje);
 router.get("/meses", isAutenticated, getTotalVentasporMes);
 router.get("/excel", isAutenticated, createExcelMensual);
+router.get("/invertido", isAutenticated, obtenerInvertido);
+router.patch("/abono/:id", isAutenticated, addAbono);
 
 module.exports = router;
