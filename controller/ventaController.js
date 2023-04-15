@@ -12,7 +12,9 @@ exports.crearVenta = async (req, res) => {
     const { cliente, productos } = req.body;
 
     //obtener el id del usuario
-    const user = await Vendedores.findById(req.user.id);
+    const user = await Vendedores.findById(req.user).select("-password");
+
+    console.log(user);
 
     //checar que no haya campos vacios
     if (!cliente || !productos) {
@@ -60,8 +62,8 @@ exports.crearVenta = async (req, res) => {
     //mensaje de exito
     res.status(201).json({ msg: "Venta creada correctamente", venta });
   } catch (error) {
-    // console.log(error);
-    res.status(500).send("Hubo un error");
+    console.log(error);
+    res.status(500).send(error);
   }
 };
 
@@ -111,6 +113,19 @@ exports.changeEstado = async (req, res) => {
       venta.estado === "Abonado"
     ) {
       return res.status(400).json({ msg: "No se puede cambiar el estado" });
+    }
+
+    if (estado === "Entregado") {
+      //actualizar el campo de deuda con el total de la venta y el campo de total de la venta es igual al campo de abono
+      venta.total = venta.deuda;
+      venta.deuda = 0;
+      venta.abonado = 0;
+
+      //guardar la venta
+      await venta.save();
+
+      //mensaje de exito
+      return res.status(200).json({ msg: "Venta actualizada correctamente" });
     }
 
     if (estado === "Abonado") {
