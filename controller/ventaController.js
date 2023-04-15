@@ -67,16 +67,18 @@ exports.crearVenta = async (req, res) => {
   }
 };
 
-exports.getAllVentas = async (req, res) => {
+exports.getLastVentas = async (req, res) => {
   try {
     const user = await Vendedores.findById(req.user).select("-password");
 
     console.log(user.tienda);
 
     //obtener las ventas y nadamas mostrar las de la tienda del usuario
-    const ventas = await Venta.find({ tienda: user.tienda }).sort({
-      fecha: -1,
-    });
+    const ventas = await Venta.find({ tienda: user.tienda })
+      .sort({
+        fecha: -1,
+      })
+      .limit(10);
 
     // console.log(ventas.tienda === req.user.tienda);
     //si no hay ventas
@@ -382,5 +384,66 @@ exports.addAbono = async (req, res) => {
     res.status(200).json({ msg: "Abono agregado correctamente" });
   } catch (error) {
     console.log(error);
+  }
+};
+
+exports.obtenerTotal = async (req, res) => {
+  try {
+    const { user } = req;
+
+    const vendedor = await Vendedores.findById(user).select("-password");
+    // console.log(vendedor);
+
+    //obtener todas las ventas de la tienda del usuario
+    const ventas = await Venta.find({ tienda: vendedor.tienda });
+
+    //obtener el total de ventas
+    let total = 0;
+    ventas.forEach((venta) => {
+      // obtener el total de ventas solo si el estado es Entregado o lo abonado si el estado es Abonado y sumarlo al total
+      if (venta.estado === "Entregado") {
+        total += venta.total;
+      }
+      if (venta.estado === "Abonado") {
+        total += venta.abonado;
+      }
+    });
+
+    res.status(200).json({ total });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: "Hubo un error" });
+  }
+};
+
+exports.obtenerVentas = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 10, sortBy = "-total", cliente = "" } = req.query;
+    const skip = (page - 1) * limit;
+
+    const ventas = await Venta.find({
+      cliente: { $regex: cliente, $options: "i" },
+    })
+      .sort(sortBy)
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const count = await Venta.countDocuments({
+      cliente: { $regex: cliente, $options: "i" },
+    });
+
+    res.status(200).json({
+      success: true,
+      count: ventas.length,
+      total: count,
+      page: parseInt(page),
+      totalPages: Math.ceil(count / limit),
+      data: ventas,
+    });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ success: false, message: "Error al obtener las ventas" });
   }
 };
