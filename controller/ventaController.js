@@ -121,6 +121,8 @@ exports.changeEstado = async (req, res) => {
       venta.deuda = 0;
       venta.abonado = 0;
 
+      venta.estado = estado;
+
       //guardar la venta
       await venta.save();
 
@@ -133,6 +135,7 @@ exports.changeEstado = async (req, res) => {
       venta.deuda = venta.total;
       venta.total = venta.abonado;
 
+      venta.estado = estado;
       //guardar la venta
       await venta.save();
 
