@@ -331,30 +331,64 @@ exports.createExcelMensual = async (req, res) => {
   }
 };
 
-exports.obtenerInvertido = async (req, res) => {
+exports.obtenerInvertido = async (req, res, next) => {
   try {
     const { user } = req;
 
+    // Obtener información del vendedor
     const vendedor = await Vendedores.findById(user).select("-password");
-    // console.log(vendedor);
 
-    //obtener todos los productos de la tienda del usuario
-    const productos = await Producto.find({ tienda: vendedor.tienda });
-    console.log(productos.length);
+    // Obtener el total invertido en productos usando el precioCompra
+    const totalProductos = await Producto.aggregate([
+      // Seleccionar productos de la tienda del vendedor
+      { $match: { tienda: vendedor.tienda } },
+      // Calcular el total invertido en productos
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $multiply: ["$precioCompra", "$stock"] } },
+        },
+      },
+    ]);
 
-    //obtener el total invertido en productos usando el precioCompra
-    let totalInvertido = 0;
-    productos.forEach((producto) => {
-      //
-      // console.log(producto);
+    // Obtener el total invertido en ventas usando el abonado
+    const productosVendidos = await Venta.aggregate([
+      // Seleccionar ventas de la tienda del vendedor
+      { $match: { tienda: vendedor.tienda } },
+      // Desglosar productos de cada venta en documentos separados
+      { $unwind: "$productos" },
+      // Unir los productos de la venta con los documentos de productos de la tienda
+      {
+        $lookup: {
+          from: "productos",
+          localField: "productos.producto",
+          foreignField: "_id",
+          as: "producto",
+        },
+      },
+      // Desglosar documentos de productos resultantes en documentos separados
+      { $unwind: "$producto" },
+      // Calcular el total invertido en productos vendidos
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: {
+              $multiply: ["$producto.precioCompra", "$productos.cantidad"],
+            },
+          },
+        },
+      },
+    ]);
 
-      totalInvertido += producto.precioCompra * producto.stock;
-    });
+    // Calcular el total invertido en productos
+    const totalInvertido =
+      (totalProductos[0]?.total || 0) + (productosVendidos[0]?.total || 0);
 
     res.status(200).json({ totalInvertido });
   } catch (error) {
-    console.log(error);
-    res.status(500).json("Hubo un error");
+    // Pasar el error al middleware de error
+    next(error);
   }
 };
 
