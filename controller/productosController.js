@@ -88,6 +88,15 @@ exports.getAllProducts = async (req, res) => {
 
     // console.log(productos);
 
+    //checar el stock de los productos y cambiar el estado a false si el stock es 0
+    productos.forEach(async (producto) => {
+      if (producto.stock === 0) {
+        producto.estado = false;
+
+        await producto.save();
+      }
+    });
+
     // Obtener el total de productos
     const totalProductos = await Producto.countDocuments(filter);
 
@@ -95,7 +104,7 @@ exports.getAllProducts = async (req, res) => {
     const siguiente =
       currentPage >= Math.ceil(totalProductos / limitPerPage)
         ? null
-        : `http://localhost:3000/api/productos?page=${
+        : `inventory-server-production.up.railway.app/api/productos?page=${
             currentPage + 1
           }&limit=${limitPerPage}`;
 
@@ -103,7 +112,7 @@ exports.getAllProducts = async (req, res) => {
     const anterior =
       currentPage <= 1
         ? null
-        : `http://localhost:3000/api/productos?page=${
+        : `inventory-server-production.up.railway.app/api/productos?page=${
             currentPage - 1
           }&limit=${limitPerPage}`;
 

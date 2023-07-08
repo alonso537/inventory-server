@@ -43,7 +43,16 @@ exports.crearVenta = async (req, res) => {
 
       //restar la cantidad de productos vendidos al inventario
       const producto = await Producto.findById(productos[i].producto);
+      //si la cantidad de stock
+      if (producto.stock < cantidad || producto.stock === 0) {
+        return res.status(400).json({ msg: "No hay suficiente stock" });
+      }
       producto.stock -= cantidad;
+
+      //si al restar el stock queda en cero cambiar el estado a false
+      if (producto.stock === 0) {
+        producto.estado = false;
+      }
       await producto.save();
     }
 
@@ -458,6 +467,7 @@ exports.obtenerVentas = async (req, res, next) => {
     const ventas = await Venta.find({
       cliente: { $regex: cliente, $options: "i" },
     })
+      .sort({ createdAt: -1 })
       .sort(sortBy)
       .skip(skip)
       .limit(parseInt(limit));
