@@ -128,7 +128,7 @@ exports.changeEstado = async (req, res) => {
 
     if (estado === "Entregado") {
       //actualizar el campo de deuda con el total de la venta y el campo de total de la venta es igual al campo de abono
-      venta.total = venta.deuda;
+      venta.total = venta.total;
       venta.deuda = 0;
       venta.abonado = 0;
 
