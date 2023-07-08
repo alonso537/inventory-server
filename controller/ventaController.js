@@ -467,7 +467,7 @@ exports.obtenerVentas = async (req, res, next) => {
     const ventas = await Venta.find({
       cliente: { $regex: cliente, $options: "i" },
     })
-      .sort({ createdAt: -1 })
+      .sort({ fecha: -1 })
       .sort(sortBy)
       .skip(skip)
       .limit(parseInt(limit));
