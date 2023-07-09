@@ -239,6 +239,7 @@ exports.getTotalVentasporMes = async (req, res) => {
       fecha: -1,
     });
 
+    // console.log(ventas);
     //obtener todos los meses de un año
     const meses = [
       "Enero",
@@ -257,10 +258,11 @@ exports.getTotalVentasporMes = async (req, res) => {
 
     //crear un arreglo con los meses y el total de ventas de cada mes
     const totalVentas = [];
-    meses.forEach((mes) => {
+    meses.forEach((mes, i) => {
       totalVentas.push({
         mes,
         total: 0,
+        number: i,
       });
     });
 
@@ -276,6 +278,7 @@ exports.getTotalVentasporMes = async (req, res) => {
       if (venta.estado === "Entregado") {
         const fecha = new Date(venta.fecha);
         const mes = fecha.getMonth();
+        console.log(mes, totalVentas[mes]);
         totalVentas[mes].total += venta.total;
       }
     });
@@ -462,10 +465,17 @@ exports.obtenerTotal = async (req, res) => {
 exports.obtenerVentas = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, sortBy = "-total", cliente = "" } = req.query;
+
     const skip = (page - 1) * limit;
+
+    //obtener usuario autenticado
+    const user = await Vendedores.findById(req.user).select("-password");
+
+    // console.log(user);
 
     const ventas = await Venta.find({
       cliente: { $regex: cliente, $options: "i" },
+      tienda: user.tienda,
     })
       .sort({ fecha: -1 })
       .sort(sortBy)
